@@ -15,7 +15,7 @@
   "dependencies": {
     "@reis/mongoose-to-json": "^3.0.0",
     "bcryptjs": "^3.0.2",
-    "cloudinary": "^2.6.1",
+    "cloudinary": "^1.30.0",
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "express-jwt": "^8.5.1",
