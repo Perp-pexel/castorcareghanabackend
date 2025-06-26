@@ -3,7 +3,9 @@ import mongoose from "mongoose";
 import userRouter from "./route/user.js";
 import productRouter from "./route/product.js";
 import reviewRouter from "./route/review.js";
+import educationRouter from "./route/education.js";
 import cors from "cors"
+
 
 // connect to database
 await mongoose.connect(process.env.MONGO_URI);
@@ -19,6 +21,7 @@ app.use(express.json());
 app.use(userRouter);
 app.use(productRouter);
 app.use(reviewRouter);
+app.use(educationRouter)
 
 
 // listen to incoming request

@@ -85,6 +85,17 @@ export const getProfile = async (req, res, next) => {
     }
 }
 
+export const getAllProfile= async(req, res, next) => {
+    try {
+     const user = await UserModel
+     .find()
+     .select({ password: false });
+      res.status(200).json(user);
+    } catch (error) {
+     next (error); 
+    }
+ }
+
 export const getUserProducts = async (req, res, next) => {
     try {
         const { filter = "{}", sort = "{}", limit = 10, skip = 0 } = req.query;
@@ -107,29 +118,60 @@ export const logOutUser = (req, res, next) => {
     res.json('User checked out')
 }
 
-export const updateProfile = async (req, res, next) => {
-    try {
-        const { error, value } = updateProfileValidator.validate({
-            ...req.body,
-            avatar: req.file?.filename
-        });
-        if (error) {
-            return res.status(422).json(error);
-        }
-        const updateUser = await UserModel.findOneAndUpdate(
-            {
-                _id: req.params.id,
-                user: req.auth.id
-            },
-            value,
-            { new: true }
-        );
-        if (!updateUser) {
-            res.status(404).json("User not found");
-        }
-        res.status(200).json(updateUser);
+// export const updateProfile= async (req, res, next) => {
+//     try {
+//         // Validate user input
+//                 const {error, value} = updateProfileValidator.validate({
+//                     ...req.body,
+//                     avatar: req.file?.filename
+//                 });
+//                 if (error) {
+//                     return res.status(422).json(error);
+//                 }
+//                 const updateProfile = await UserModel.findOneAndUpdate(
+//                     {
+//                         _id: req.params.id,
+//                         user: req.auth.id
+//                     },
+//                     value,
+//                     { new: true }
+//                 );
+//                 if (!updateProfile) {
+//                     res.status(404).json("User not found");
+//                 };
+//         res.status(200).json({message:'User profile updated', user})
+//     } catch (error) {
+//         next (error);  
+//     }
+// }
 
-    } catch (error) {
-        next(error)
+export const updateProfile = async (req, res, next) => {
+  try {
+    // Validate input
+    const { error, value } = updateProfileValidator.validate({
+      ...req.body,
+      avatar: req.file?.filename,
+    });
+
+    if (error) {
+      return res.status(422).json(error);
     }
+
+    // Use either authenticated ID or param ID
+    const userId = req.params.id || req.auth?.id;
+
+    if (!userId) {
+      return res.status(400).json({ message: 'User ID not provided' });
+    }
+
+    const updatedUser = await UserModel.findByIdAndUpdate(userId, value, { new: true });
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.status(200).json({ message: 'User profile updated', user: updatedUser });
+  } catch (error) {
+    next(error);
+  }
 };

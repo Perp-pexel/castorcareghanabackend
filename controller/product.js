@@ -10,11 +10,14 @@ export const addProduct = async (req, res, next) => {
         if (error) {
             return res.status(422).json(error);
         }
-        await ProductModel.create({
+       const newProduct = await ProductModel.create({
             ...value,
             user: req.auth.id
         });
-        res.status(201).json("Product posted successfully!")
+        res.status(200).json({
+      message: "Product added successfully!",
+      data: newProduct,
+    });
     } catch (error) {
         next(error);
     }
@@ -47,14 +50,14 @@ export const getProduct = async (req, res, next) => {
 
 export const updateProduct = async (req, res, next) => {
     try {
-        const { error, value } = updateAdvertValidator.validate({
+        const { error, value } = updateProductValidator.validate({
             ...req.body,
             image: req.file?.filename
         });
         if (error) {
             return res.status(422).json(error);
         }
-        const updateProduct = await ProductModel.findOneAndUpdate(
+        const updatedProduct = await ProductModel.findOneAndUpdate(
             {
                 _id: req.params.id,
                 user: req.auth.id
@@ -65,7 +68,10 @@ export const updateProduct = async (req, res, next) => {
         if (!updateProduct) {
             res.status(404).json("Product not found");
         }
-        res.status(200).json(updateProduct);
+        res.status(200).json({
+      message: "Product updated successfully!",
+      data: updatedProduct,
+    });
 
     } catch (error) {
         next(error)
@@ -74,7 +80,7 @@ export const updateProduct = async (req, res, next) => {
 
 export const deleteProduct = async (req, res, next) => {
     try {
-        const deleteProduct = await ProductModel.findOneAndDelete(
+        const deletedProduct = await ProductModel.findOneAndDelete(
             {
                 _id: req.params.id,
                 user: req.auth.id
@@ -84,7 +90,10 @@ export const deleteProduct = async (req, res, next) => {
             return res.status(422).json("Product not found")
 
         }
-        res.status(200).json(deleteProduct)
+        res.status(200).json({
+      message: "Product deleted successfully!",
+      data: deletedProduct,
+    });
     } catch (error) {
         next(error);
     }

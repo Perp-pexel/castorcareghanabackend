@@ -8,7 +8,7 @@ export const productImageUpload = multer({
     cloudinary,
     params: {
       folder: 'castorcareghana/product', // No need for * wildcard
-      allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'tiff', 'ico', 'svg'],
+      // allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'tiff', 'ico', 'svg'],
 
     },
   }),
@@ -20,7 +20,18 @@ export const userAvatarUpload = multer({
     cloudinary,
     params: {
       folder: 'castorcareghana/users',
-      allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'tiff', 'ico', 'svg'],
+      // allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'tiff', 'ico', 'svg'],
     },
   }),
+});
+
+export const educationMediaUpload = multer({
+  storage: new CloudinaryStorage({
+    cloudinary,
+    params: {
+      folder: 'castorcareghana/education',
+      resource_type: 'auto',
+      // allowed_formats removed to accept all formats
+    }
+  })
 });
