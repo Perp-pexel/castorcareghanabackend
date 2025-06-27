@@ -1,18 +1,20 @@
 import { Schema, Types, model } from "mongoose";
 import { toJSON } from "@reis/mongoose-to-json";
 
-const paymentSchema = new Schema(
+const educationPaymentSchema = new Schema(
   {
     user: {
       type: Types.ObjectId, // ✅ use Types from destructuring
       ref: 'User',
       required: true,
     },
-    category: {
-      type: String,
-      enum: ['product', 'education'],
+
+    education: {
+      type: Types.ObjectId, // ✅ use Types from destructuring
+      ref: 'Education',
       required: true,
     },
+
     amount: {
       type: Number,
       required: true,
@@ -22,15 +24,7 @@ const paymentSchema = new Schema(
       default: 'GHS',
       required: true,
     },
-    quantity: {
-      type: Number,
-      required: true,
-    },
-    reference: {
-      type: Types.ObjectId,
-      required: true,
-      refPath: 'category',
-    },
+   
     status: {
       type: String,
       enum: ['pending', 'completed', 'failed'],
@@ -42,6 +36,6 @@ const paymentSchema = new Schema(
   }
 );
 
-paymentSchema.plugin(toJSON);
+educationPaymentSchema.plugin(toJSON);
 
-export const PaymentModel = model("Payment", paymentSchema);
+export const EducationPaymentModel = model("EducationPayment", educationPaymentSchema);

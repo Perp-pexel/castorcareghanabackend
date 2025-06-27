@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import { logInUserValidator, registerUserValidator, updateProfileValidator } from "../validator/user.js";
 import { mailTransporter } from "../utils/mail.js";
 import { ProductModel } from "../model/product.js";
+import { registerEmailTemplate } from "../utils/emailTemplate.js";
 
 export const registerUser = async (req, res, next) => {
     try {
@@ -12,26 +13,38 @@ export const registerUser = async (req, res, next) => {
             return res.status(422).json(error);
         }
 
-        const user = await UserModel.findOne({ email: value.email });
-        if (user) {
+        const User = await UserModel.findOne({ email: value.email });
+        if (User) {
             return res.status(409).json('user already exist!');
         }
 
         const hashedPassword = bcrypt.hashSync(value.password, 10)
 
-        await UserModel.create({
+        const user = await UserModel.create({
             ...value,
             password: hashedPassword
         });
 
-        await mailTransporter.sendMail({
-            to: value.email,
-            subject: 'User Registration',
-            text: 'Account registered successfully'
-        });
+         const emailContent = `
+                <p>Hi ${user.firstName}<p>
+                <h1>Welcome to Castor Care Ghana!</h1>
+                            <p>Account created successfully on ${new Date().toDateString()} as a ${user.role}</p>
+                            <p>LogIn to interract with us.</p>
+        
+                            <p>Best regards</p>`
+                // Send professional a confirmation email
+                await mailTransporter.sendMail({
+                    from: `Castor Care Ghana <${process.env.EMAIL_USER}`,
+                    to: value.email,
+                    subject: "User Registration",
+                    html: registerEmailTemplate(emailContent)
+                });
+        
 
-
-        res.json('Registered user!')
+       res.status(201).json({
+      message: "Account created successfully!",
+      data: user,
+    });
     } catch (error) {
         next(error);
     }
@@ -61,7 +74,7 @@ export const logInUser = async (req, res, next) => {
             { expiresIn: '24h' }
         );
 
-        res.json({
+        res.status(200).json({
             message: 'User checked in!',
             accessToken: token
         });
@@ -79,7 +92,7 @@ export const getProfile = async (req, res, next) => {
 
             .findById(req.auth.id)
             .select({ password: false });
-        res.json(user);
+        res.status(200).json(user);
     } catch (error) {
         next(error);
     }
@@ -115,35 +128,9 @@ export const getUserProducts = async (req, res, next) => {
 }
 
 export const logOutUser = (req, res, next) => {
-    res.json('User checked out')
+    res.status(200).json('User checked out')
 }
 
-// export const updateProfile= async (req, res, next) => {
-//     try {
-//         // Validate user input
-//                 const {error, value} = updateProfileValidator.validate({
-//                     ...req.body,
-//                     avatar: req.file?.filename
-//                 });
-//                 if (error) {
-//                     return res.status(422).json(error);
-//                 }
-//                 const updateProfile = await UserModel.findOneAndUpdate(
-//                     {
-//                         _id: req.params.id,
-//                         user: req.auth.id
-//                     },
-//                     value,
-//                     { new: true }
-//                 );
-//                 if (!updateProfile) {
-//                     res.status(404).json("User not found");
-//                 };
-//         res.status(200).json({message:'User profile updated', user})
-//     } catch (error) {
-//         next (error);  
-//     }
-// }
 
 export const updateProfile = async (req, res, next) => {
   try {

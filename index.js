@@ -4,7 +4,10 @@ import userRouter from "./route/user.js";
 import productRouter from "./route/product.js";
 import reviewRouter from "./route/review.js";
 import educationRouter from "./route/education.js";
+import productPaymentRouter from "./route/productPayment.js";
+import educationPaymentRouter from "./route/educationPayment.js";
 import cors from "cors"
+
 
 
 // connect to database
@@ -21,7 +24,9 @@ app.use(express.json());
 app.use(userRouter);
 app.use(productRouter);
 app.use(reviewRouter);
-app.use(educationRouter)
+app.use(educationRouter);
+app.use(productPaymentRouter);
+app.use(educationPaymentRouter);
 
 
 // listen to incoming request
