@@ -76,6 +76,7 @@ export const logInUser = async (req, res, next) => {
 
         res.status(200).json({
             message: 'User checked in!',
+            data: user,
             accessToken: token
         });
         // res.json('User checked in')
