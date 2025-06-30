@@ -7,6 +7,7 @@ const productSchema = new Schema({
     unit: { type: String, enum: ['kg','g','l','ml','pck','each','pcs', 'pound', 'box'] },
     image: { type: String, required: true },
     price: { type: String, required: true },
+    stock: { type: Number, required: true },
     user: { type: Types.ObjectId, required: true, ref: 'User' }
 }, {
     timestamps: true

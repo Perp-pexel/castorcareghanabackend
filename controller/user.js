@@ -29,14 +29,13 @@ export const registerUser = async (req, res, next) => {
                 <p>Hi ${user.firstName}<p>
                 <h1>Welcome to Castor Care Ghana!</h1>
                             <p>Account created successfully on ${new Date().toDateString()} as a ${user.role}</p>
-                            <p>LogIn to interract with us.</p>
-        
-                            <p>Best regards</p>`
+                            <p>LogIn to interract with us.</p>`
                 // Send professional a confirmation email
                 await mailTransporter.sendMail({
                     from: `Castor Care Ghana <${process.env.EMAIL_USER}`,
                     to: value.email,
                     subject: "User Registration",
+                    replyTo: 'info@castorcareghana.com',
                     html: registerEmailTemplate(emailContent)
                 });
         

@@ -8,8 +8,12 @@ export const registerEmailTemplate = (content) => `
       <div style="color:#000000; font-size: 18px; line-height: 1.5; text-align: start;">
         ${content}
       </div>
-
+      <div style="color:#000000; font-size: 15px; margin-top: 50px; line-height: 1; text-align: start;">
+      <p>Best regards</p>
+      <p>Castor Care Ghana</p>
+      </div>
       <footer style="margin-top: 30px; font-size: 12px; color: #777; text-align: start;">
+      <p style="font-size: 12px; color: gray;">This is an automated message. Please do not reply to this email.</p>
         <p>&copy; ${new Date().getFullYear()} Castor Care Ghana. All rights reserved.</p>
       </footer>
 
