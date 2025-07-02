@@ -4,6 +4,7 @@ export const educationValidator = Joi.object({
   title: Joi.string().trim().min(3).required(),
   description: Joi.string().trim().min(10).required(),
   url: Joi.string().uri().optional(),
+  fee: Joi.string().allow('').optional(),
   media: Joi.array().items(
     Joi.object({
       type: Joi.string()
@@ -18,6 +19,7 @@ export const updateEducationValidator = Joi.object({
   title: Joi.string().trim().min(3),
   description: Joi.string().trim().min(10),
   url: Joi.string().uri(),
+  fee: Joi.string(),
   media: Joi.array().items(
     Joi.object({
       type: Joi.string()

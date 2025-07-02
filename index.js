@@ -6,6 +6,7 @@ import reviewRouter from "./route/review.js";
 import educationRouter from "./route/education.js";
 import productPaymentRouter from "./route/productPayment.js";
 import educationPaymentRouter from "./route/educationPayment.js";
+import formRouter from "./route/form.js";
 import cors from "cors"
 
 
@@ -27,6 +28,7 @@ app.use(reviewRouter);
 app.use(educationRouter);
 app.use(productPaymentRouter);
 app.use(educationPaymentRouter);
+app.use(formRouter);
 
 
 // listen to incoming request

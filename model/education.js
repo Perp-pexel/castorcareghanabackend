@@ -4,7 +4,8 @@ import { toJSON } from "@reis/mongoose-to-json";
 const educationSchema = new Schema({
     title: { type: String, required: true },
     description: { type: String, required: true },
-    url: { type: String, required: true }, // This can be the course/video link
+    fee: { type: String },
+    url: { type: String, required: true }, 
     user: { type: Types.ObjectId, required: true, ref: 'User' },
     media: [
         {
