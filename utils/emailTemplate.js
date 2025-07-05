@@ -23,3 +23,40 @@ export const registerEmailTemplate = (content) => `
     </div>
   </div>
 `;
+
+
+export const forgotPasswordTemplate = (resetLink, firstName = 'User') => `
+  <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+    <h2 style="color: #28a745; text-align: center;">Reset Your Password</h2>
+
+    <p>Hi ${firstName},</p>
+
+    <p>We received a request to reset your password. To proceed, please click the button below:</p>
+
+    <div style="text-align: center; margin: 20px 0;">
+      <a href="${resetLink}" 
+         style="background-color: #28a745; color: white; padding: 12px 25px; border-radius: 5px; text-decoration: none; font-weight: bold;">
+         Reset Password
+      </a>
+    </div>
+
+    <p>If the button above doesn't work, you can copy and paste the link below into your browser:</p>
+
+    <p style="word-break: break-all; background-color: #f8f8f8; padding: 10px; border-left: 4px solid #28a745;">
+      ${resetLink}
+    </p>
+
+    <p>This link will expire in <strong>30 minutes</strong> for your security.</p>
+
+    <p>If you did not request a password reset, you can safely ignore this email. Your account will remain secure.</p>
+
+    <p>Warm regards,<br/>Team <strong>Castor Care Ghana</strong></p>
+
+    <hr style="margin-top: 40px; border: none; border-top: 1px solid #ccc;" />
+
+    <p style="font-size: 12px; color: #999; text-align: center;">
+      Need help? Contact our support team at <a href="mailto:info@castorcareghana.com">info@castorcareghana.com</a>
+    </p>
+  </div>
+`;
+

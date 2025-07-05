@@ -9,7 +9,10 @@ const userSchema =new Schema({
     password: { type:String, required:true},
     // repeat_password: { type:String, ref:'password' },
     avatar: { type: String },
-    role: { type: String, default: 'user', enum: ['buyer', 'farmer', 'admin', 'superadmin'] }
+    role: { type: String, default: 'user', enum: ['buyer', 'farmer', 'admin', 'superadmin'] },
+    resetPasswordToken: String,
+    resetPasswordExpire: Date
+
 }, {
     timestamps: true
 });

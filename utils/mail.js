@@ -10,3 +10,4 @@ export const mailTransporter = createTransport({
     },
     from: process.env.EMAIL_USER
 });
+
