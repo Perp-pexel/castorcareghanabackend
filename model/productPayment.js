@@ -34,6 +34,15 @@ const productPaymentSchema = new Schema(
       enum: ['pending', 'completed', 'failed'],
       default: 'pending',
     },
+    paymentMethod: {
+      type: String,
+      enum: ['mobile_money', 'bank_transfer', 'card'],
+      required: true,
+    },
+    paymentNumber: {
+      type: String,
+      required: true,
+    },
   },
   {
     timestamps: true,
