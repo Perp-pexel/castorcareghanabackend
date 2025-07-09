@@ -4,7 +4,7 @@ import { toJSON } from "@reis/mongoose-to-json";
 
 const productSchema = new Schema({
     title: { type: String, required: true },
-    unit: { type: String, enum: ['kg','g','l','ml','pck','each','pcs', 'pound', 'box'] },
+    unit: { type: String, enum: ['kg','g','liter','ml','pck','each','pcs', 'pound', 'box'] },
     image: { type: String, required: true },
     price: { type: String, required: true },
     stock: { type: Number, required: true },
