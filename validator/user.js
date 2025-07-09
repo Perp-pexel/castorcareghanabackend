@@ -23,5 +23,6 @@ export const updateProfileValidator = Joi.object({
     lastName: Joi.string(),
     contact: Joi.string(),
     avatar: Joi.string(),
-    password: Joi.string(), 
+    password: Joi.string(),
+    role: Joi.string().valid('buyer', 'farmer', 'admin', 'superadmin') 
 });
