@@ -133,27 +133,37 @@ export const logOutUser = (req, res, next) => {
     res.status(200).json('User checked out')
 }
 
-
 export const updateProfile = async (req, res, next) => {
   try {
-    // Validate input
-    const { error, value } = updateProfileValidator.validate({
-      ...req.body,
-      avatar: req.file?.filename,
-    });
-
-    if (error) {
-      return res.status(422).json(error);
-    }
-
-    // Use either authenticated ID or param ID
     const userId = req.params.id || req.auth?.id;
 
     if (!userId) {
       return res.status(400).json({ message: 'User ID not provided' });
     }
 
-    const updatedUser = await UserModel.findByIdAndUpdate(userId, value, { new: true });
+    // Prepare input with file name (if uploaded)
+    const inputData = {
+      ...req.body,
+      avatar: req.file?.filename,
+    };
+
+    // Validate input
+    const { error, value } = updateProfileValidator.validate(inputData);
+    if (error) {
+      return res.status(422).json({ message: 'Validation failed', details: error.details });
+    }
+
+    // If password is to be updated, hash it
+    if (value.password) {
+      const salt = await bcrypt.genSalt(10);
+      value.password = await bcrypt.hash(value.password, salt);
+    }
+
+    // Update user and return the updated document
+    const updatedUser = await UserModel.findByIdAndUpdate(userId, value, {
+      new: true,
+      runValidators: true,
+    });
 
     if (!updatedUser) {
       return res.status(404).json({ message: 'User not found' });
@@ -164,6 +174,7 @@ export const updateProfile = async (req, res, next) => {
     next(error);
   }
 };
+
 
 
 // Store reset tokens temporarily in DB
