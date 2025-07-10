@@ -79,18 +79,25 @@ export const addProduct = async (req, res, next) => {
   }
 };
 
-// GET ALL PRODUCTS
 export const getProducts = async (req, res, next) => {
   try {
     const { filter = "{}", sort = "{}", limit = 1000, skip = 0 } = req.query;
     const parsedFilter = JSON.parse(filter);
-    const { role, id } = req.auth;
 
-    if (role === 'farmer') {
-      parsedFilter.user = id; // Farmers see only their own
-    } else if (role === 'buyer') {
+    const role = req.auth?.role;
+    const userId = req.auth?.id;
+
+    if (!role) {
+      // Guest (not signed in): hide farmer products
       const farmers = await UserModel.find({ role: 'farmer' }, '_id');
-      parsedFilter.user = { $nin: farmers.map(f => f._id) }; // Exclude farmer products
+      parsedFilter.user = { $nin: farmers.map(f => f._id) };
+    } else if (role === 'farmer') {
+      // Farmers see only their own
+      parsedFilter.user = userId;
+    } else if (role === 'buyer') {
+      // Authenticated buyer: hide farmer products
+      const farmers = await UserModel.find({ role: 'farmer' }, '_id');
+      parsedFilter.user = { $nin: farmers.map(f => f._id) };
     }
 
     const products = await ProductModel
@@ -106,30 +113,45 @@ export const getProducts = async (req, res, next) => {
   }
 };
 
-// GET SINGLE PRODUCT
 export const getProduct = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { role, id: userId } = req.auth;
+    const role = req.auth?.role;
+    const userId = req.auth?.id;
 
     const product = await ProductModel.findById(id).populate("user");
-    if (!product) return res.status(404).json({ message: "Product not found" });
 
-    const isOwner = String(product.user?._id) === userId;
-
-    if (role === 'buyer' && product.user.role === 'farmer') {
-      return res.status(403).json({ message: "Access denied to this product" });
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
     }
 
-    if (role === 'farmer' && !isOwner) {
-      return res.status(403).json({ message: "Access denied to this product" });
+    const productOwnerId = String(product.user?._id);
+    const productOwnerRole = product.user?.role;
+
+    if (!role) {
+      // Unauthenticated guest
+      if (productOwnerRole === 'farmer') {
+        return res.status(403).json({ message: "Access denied to this product" });
+      }
+    } else if (role === 'buyer') {
+      // Authenticated buyer
+      if (productOwnerRole === 'farmer') {
+        return res.status(403).json({ message: "Access denied to this product" });
+      }
+    } else if (role === 'farmer') {
+      // Farmer can only see their own
+      if (userId !== productOwnerId) {
+        return res.status(403).json({ message: "Access denied to this product" });
+      }
     }
+    // Admin and Superadmin bypass restrictions
 
     res.status(200).json(product);
   } catch (error) {
     next(error);
   }
 };
+
 
 // UPDATE PRODUCT
 export const updateProduct = async (req, res, next) => {
