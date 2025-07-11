@@ -7,105 +7,107 @@ import { UserModel } from "../model/user.js";
 
 export const addEducation = async (req, res, next) => {
   try {
-    // Properly classify each uploaded file
+    // STEP 1: Properly extract and categorize uploaded media files
     const media = req.files?.map(file => {
       let type = 'document';
 
-      if (file.mimetype.startsWith('image/')) {
-        type = 'image';
-      } else if (file.mimetype.startsWith('video/')) {
-        type = 'video';
-      } else if (file.mimetype.startsWith('audio/')) {
-        type = 'audio';
-      }
+      if (file.mimetype.startsWith('image/')) type = 'image';
+      else if (file.mimetype.startsWith('video/')) type = 'video';
+      else if (file.mimetype.startsWith('audio/')) type = 'audio';
 
       return {
         type,
         filename: file.originalname || file.filename,
-        fileUrl: file.secure_url || file.path || file.url,
+        fileUrl: file.secure_url || file.path || file.url || '',
       };
-    });
+    }) || [];
 
+    // STEP 2: Validate all required fields and media
     const { error, value } = educationValidator.validate({
       ...req.body,
-      media: media?.length ? media : undefined,
+      media: media.length > 0 ? media : undefined,
     });
 
     if (error) {
       return res.status(422).json({
-        message: "Validation failed",
+        message: 'Validation failed',
         details: error.details,
       });
     }
 
+    // STEP 3: Create and store the education resource
     const newEducation = await EducationModel.create({
       ...value,
-      user: req.auth.id,
+      user: req.auth.id, // Assumes auth middleware sets req.auth.id
+      media,
     });
 
-     const education = await EducationModel.findById(newEducation._id).populate("user");
-    
-            const emailContent = `
-                            <p>Hi ${education.user.firstName}</p>
-                                        <h4>Education added successfully on ${new Date().toDateString()}.</h4>
-                                        <ul>
-                                        <li>Title:  ${education.title}</li>
-                                        <li>Fee:  GHC ${education.fee || 'Free'}</li>
-                                        <li>Url:  ${education.url || 'N/A'}</li>
-                                        </ul>
-                                        <p>Click on the link below to view your education:</p>
-                                        <a style="font-size: 14px; line-height: 1;"  target="_blank"; href="${process.env.CLIENT_URL}/education/${education._id}">${process.env.CLIENT_URL}/education/${education._id}</a>`
-                            // Send professional a confirmation email
-                            await mailTransporter.sendMail({
-                                from: `Castor Care Ghana <${process.env.EMAIL_USER}`,
-                                to: education.user.email,
-                                subject: "Education Added",
-                                replyTo: 'info@castorcareghana.com',
-                                html: registerEmailTemplate(emailContent)
-                            });
+    // STEP 4: Populate user for response and email notification
+    const education = await EducationModel.findById(newEducation._id).populate('user');
 
-                            // Fetch all users except those with role 'buyer'
-      const allUsers = await UserModel.find({ role: { $ne: 'buyer' } }, 'email firstName');
+    // STEP 5: Notify creator by email
+    const creatorEmail = `
+      <p>Hi ${education.user.firstName},</p>
+      <h4>Your education resource has been added on ${new Date().toDateString()}.</h4>
+      <ul>
+        <li><strong>Title:</strong> ${education.title}</li>
+        <li><strong>Fee:</strong> ${education.fee ? `GHS ${education.fee}` : 'Free'}</li>
+        <li><strong>URL:</strong> <a href="${education.url}" target="_blank">${education.url}</a></li>
+      </ul>
+      <p>Click to view your resource:</p>
+      <a href="${process.env.CLIENT_URL}/education/${education._id}" target="_blank">
+        ${process.env.CLIENT_URL}/education/${education._id}
+      </a>
+    `;
 
-      // Email content template
-      const emailBody = `
-        <h4>New Education Posted.</h4>
-        <ul>
-          <li>Posted by: ${education.user.firstName || 'Unknown'}</li>
-          <li>Date: ${new Date().toDateString()}</li>
-          <li>Title: ${education.title}</li>
-          <li>Fee: GHC ${education.fee || 'Free'}</li>
-        </ul>
-        
-        <p>Click on the link below to view the education resource:</p>
-          <a target="_blank" style="font-size: 14px; line-height: 1;" href="${process.env.CLIENT_URL}/education/${education._id}">
-            ${process.env.CLIENT_URL}/education/${education._id}
-          </a>
-        
-      `;
+    await mailTransporter.sendMail({
+      from: `Castor Care Ghana <${process.env.EMAIL_USER}>`,
+      to: education.user.email,
+      subject: 'Education Added Successfully',
+      replyTo: 'info@castorcareghana.com',
+      html: registerEmailTemplate(creatorEmail),
+    });
 
-      // Broadcast to each user except buyers
-      for (const user of allUsers) {
-        await mailTransporter.sendMail({
-          from: `Castor Care Ghana <${process.env.EMAIL_USER}>`,
-          to: user.email,
-          subject: `New Education: ${education.title}`,
-          replyTo: 'info@castorcareghana.com',
-          html: registerEmailTemplate(`
-            <p>Hi ${user.firstName || 'there'},</p>
-            ${emailBody}
-          `),
-        });
-      }
+    // STEP 6: Notify all users except buyers
+    const users = await UserModel.find({ role: { $ne: 'buyer' } }, 'email firstName');
 
+    const broadcast = `
+      <h4>New Education Available</h4>
+      <ul>
+        <li><strong>Posted by:</strong> ${education.user.firstName}</li>
+        <li><strong>Title:</strong> ${education.title}</li>
+        <li><strong>Date:</strong> ${new Date().toDateString()}</li>
+        <li><strong>Fee:</strong> ${education.fee ? `GHS ${education.fee}` : 'Free'}</li>
+      </ul>
+      <p>View it here:</p>
+      <a href="${process.env.CLIENT_URL}/education/${education._id}" target="_blank">
+        ${process.env.CLIENT_URL}/education/${education._id}
+      </a>
+    `;
 
+    for (const user of users) {
+      await mailTransporter.sendMail({
+        from: `Castor Care Ghana <${process.env.EMAIL_USER}>`,
+        to: user.email,
+        subject: `New Education: ${education.title}`,
+        replyTo: 'info@castorcareghana.com',
+        html: registerEmailTemplate(`<p>Hi ${user.firstName},</p>${broadcast}`),
+      });
+    }
+
+    // Final response
     res.status(201).json({
-      message: "Education posted successfully!", education
+      message: 'Education posted successfully!',
+      education,
     });
-   } catch (error) {
+  } catch (error) {
+    console.error('❌ Error in addEducation:', error);
     next(error);
   }
 };
+
+
+
 
 export const getEducations = async (req, res, next) => {
   try {

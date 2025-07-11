@@ -28,10 +28,12 @@ export const userAvatarUpload = multer({
 export const educationMediaUpload = multer({
   storage: new CloudinaryStorage({
     cloudinary,
-    params: {
-      folder: 'castorcareghana/education',
-      resource_type: 'auto',
-      // allowed_formats removed to accept all formats
-    }
-  })
+    params: async (req, file) => {
+      return {
+        folder: 'castorcareghana/education',
+        resource_type: 'auto', // ensures Cloudinary detects image/video/audio/document
+      };
+    },
+  }),
 });
+

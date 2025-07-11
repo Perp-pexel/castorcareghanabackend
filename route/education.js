@@ -10,9 +10,9 @@ const educationRouter = Router();
 
 educationRouter.post("/educations", isAuthenticated, educationMediaUpload.array("media"), addEducation);
 
-educationRouter.get("/educations", isAuthenticated, getEducations);
+educationRouter.get("/educations",  getEducations);
 
-educationRouter.get("/educations/:id", isAuthenticated, getEducation);
+educationRouter.get("/educations/:id", getEducation);
 
 educationRouter.patch("/educations/:id", isAuthenticated, educationMediaUpload.array("media"), updateEducation);
 
