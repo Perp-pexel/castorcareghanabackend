@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { addProduct, deleteProduct, getProducts, getProduct, updateProduct } from "../controller/product.js";
+import { addProduct, deleteProduct, getProducts, getProduct, updateProduct, getAllFarmerProducts } from "../controller/product.js";
 import { isAuthenticated } from "../middleware/authenticator.js";
 import { productImageUpload } from "../middleware/uploads.js";
 
@@ -11,11 +11,16 @@ productRouter.post("/products",isAuthenticated, productImageUpload.single("image
 
 productRouter.get("/products", getProducts);
 
+productRouter.get('/products/farmers', getAllFarmerProducts);
+
 productRouter.get("/products/:id", getProduct);
 
 productRouter.patch("/products/:id", isAuthenticated, productImageUpload.single("image"), updateProduct);
 
 productRouter.delete("/products/:id", isAuthenticated, deleteProduct);
+
+// productRouter.get('/products/farmer/:farmerId', getProductsByFarmer);
+
 
 // export router
 export default productRouter;

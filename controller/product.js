@@ -244,3 +244,16 @@ export const deleteProduct = async (req, res, next) => {
     next(error);
   }
 };
+
+export const getAllFarmerProducts = async (req, res, next) => {
+  try {
+    const farmers = await UserModel.find({ role: 'farmer' }, '_id');
+    const farmerIds = farmers.map(f => f._id);
+
+    const products = await ProductModel.find({ user: { $in: farmerIds } }).populate("user");
+
+    res.status(200).json(products);
+  } catch (error) {
+    next(error);
+  }
+};
