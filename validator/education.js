@@ -28,5 +28,12 @@ export const updateEducationValidator = Joi.object({
       filename: Joi.string(),
       fileUrl: Joi.string().uri()
     })
-  )
+  ),
+  existingMedia: Joi.array().items(
+    Joi.object({
+      type: Joi.string().valid('image', 'video', 'document', 'audio').required(),
+      filename: Joi.string().required(),
+      fileUrl: Joi.string().uri().required()
+    })
+  ).optional()
 });
