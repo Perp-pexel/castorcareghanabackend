@@ -3,7 +3,7 @@ import Joi from "joi";
 export const educationValidator = Joi.object({
   title: Joi.string().trim().min(3).required(),
   description: Joi.string().trim().min(10).required(),
-  url: Joi.string().uri().optional(),
+  url: Joi.string().uri().allow('').optional(),
   fee: Joi.string().allow('').optional(),
   media: Joi.array().items(
     Joi.object({
@@ -18,7 +18,7 @@ export const educationValidator = Joi.object({
 export const updateEducationValidator = Joi.object({
   title: Joi.string().trim().min(3),
   description: Joi.string().trim().min(10),
-  url: Joi.string().uri(),
+  url: Joi.string().uri().allow(''),
   fee: Joi.string(),
   media: Joi.array().items(
     Joi.object({
