@@ -16,17 +16,7 @@ const educationSchema = new Schema({
             filename: String,
             fileUrl: String
         }
-    ],
-    existingMedia: [
-        {
-            type: {
-                type: String,
-                enum: ['image', 'video', 'document', 'audio']    
-            },
-            filename: String,
-            fileUrl: String
-        }
-    ]   
+    ]
 }, {
     timestamps: true
 });
