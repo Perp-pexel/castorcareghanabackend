@@ -5,7 +5,7 @@ const educationSchema = new Schema({
     title: { type: String, required: true },
     description: { type: String, required: true },
     fee: { type: String },
-    url: { type: String, required: true }, 
+    url: { type: String}, 
     user: { type: Types.ObjectId, required: true, ref: 'User' },
     media: [
         {
