@@ -141,13 +141,12 @@ export const getEducation = async (req, res, next) => {
 
 export const updateEducation = async (req, res, next) => {
   try {
-    // 1. Parse `existingMedia` from the frontend (JSON string)
+    // 1. Parse existingMedia from body (JSON string to array)
     const existingMediaRaw = req.body.existingMedia;
     const existingMedia = existingMediaRaw ? JSON.parse(existingMediaRaw) : [];
 
-    // 2. Parse new uploaded files (via multer)
+    // 2. Handle new uploaded files
     const uploadedFiles = req.files || [];
-
     const newMedia = uploadedFiles.map(file => {
       let type = 'document';
       if (file.mimetype.startsWith('image/')) type = 'image';
@@ -161,12 +160,15 @@ export const updateEducation = async (req, res, next) => {
       };
     });
 
-    // 3. Combine old + new media
+    // 3. Combine all media
     const combinedMedia = [...existingMedia, ...newMedia];
 
-    // 4. Validate final object using Joi
+    // 4. Validate the complete update payload
     const { error, value } = updateEducationValidator.validate({
-      ...req.body,
+      title: req.body.title,
+      description: req.body.description,
+      url: req.body.url,
+      fee: req.body.fee || '0',
       media: combinedMedia,
     });
 
@@ -177,7 +179,7 @@ export const updateEducation = async (req, res, next) => {
       });
     }
 
-    // 5. Find and update the education
+    // 5. Update the education post
     const updatedEducation = await EducationModel.findOneAndUpdate(
       { _id: req.params.id, user: req.auth.id },
       value,
@@ -188,7 +190,7 @@ export const updateEducation = async (req, res, next) => {
       return res.status(404).json({ message: 'Education not found' });
     }
 
-    // 6. Email the owner
+    // 6. Send email to education owner
     const emailContent = `
       <p>Hi ${updatedEducation.user.firstName},</p>
       <h4>Your education resource was successfully updated.</h4>
@@ -209,9 +211,8 @@ export const updateEducation = async (req, res, next) => {
       replyTo: 'info@castorcareghana.com',
     });
 
-    // 7. Notify other users
+    // 7. Notify other users (optional bulk)
     const users = await UserModel.find({ role: { $ne: 'buyer' } });
-
     const notifyBody = `
       <h4>An education post has been updated</h4>
       <ul>
@@ -234,7 +235,7 @@ export const updateEducation = async (req, res, next) => {
       });
     }
 
-    // 8. Respond with updated data
+    // 8. Respond with updated education
     res.status(200).json({
       message: 'Education updated successfully!',
       updatedEducation,
@@ -244,6 +245,8 @@ export const updateEducation = async (req, res, next) => {
     next(err);
   }
 };
+
+
 
 
 export const deleteEducation = async (req, res, next) => {
