@@ -141,11 +141,14 @@ export const getEducation = async (req, res, next) => {
 
 export const updateEducation = async (req, res, next) => {
   try {
-    // Parse old media sent from the frontend
-    const oldMedia = req.body.existingMedia ? JSON.parse(req.body.existingMedia) : [];
+    // 1. Parse `existingMedia` from the frontend (JSON string)
+    const existingMediaRaw = req.body.existingMedia;
+    const existingMedia = existingMediaRaw ? JSON.parse(existingMediaRaw) : [];
 
-    // Parse new uploaded media files
-    const newMedia = req.files?.map(file => {
+    // 2. Parse new uploaded files (via multer)
+    const uploadedFiles = req.files || [];
+
+    const newMedia = uploadedFiles.map(file => {
       let type = 'document';
       if (file.mimetype.startsWith('image/')) type = 'image';
       else if (file.mimetype.startsWith('video/')) type = 'video';
@@ -156,72 +159,69 @@ export const updateEducation = async (req, res, next) => {
         filename: file.originalname || file.filename,
         fileUrl: file.secure_url || file.path || file.url,
       };
-    }) || [];
+    });
 
-    // Combine old and new media
-    const mergedMedia = [...oldMedia, ...newMedia];
+    // 3. Combine old + new media
+    const combinedMedia = [...existingMedia, ...newMedia];
 
-    // Validate the updated data
+    // 4. Validate final object using Joi
     const { error, value } = updateEducationValidator.validate({
       ...req.body,
-      media: mergedMedia.length ? mergedMedia : undefined,
+      media: combinedMedia,
     });
 
     if (error) {
       return res.status(422).json({
-        message: "Validation failed",
+        message: 'Validation failed',
         details: error.details,
       });
     }
 
-    // Find and update the education post
+    // 5. Find and update the education
     const updatedEducation = await EducationModel.findOneAndUpdate(
       { _id: req.params.id, user: req.auth.id },
       value,
       { new: true }
-    ).populate("user");
+    ).populate('user');
 
     if (!updatedEducation) {
-      return res.status(404).json({ message: "Education not found" });
+      return res.status(404).json({ message: 'Education not found' });
     }
 
-    // ✅ Send confirmation email to the creator
+    // 6. Email the owner
     const emailContent = `
       <p>Hi ${updatedEducation.user.firstName},</p>
-      <h4>Education updated successfully on ${new Date().toDateString()}.</h4>
+      <h4>Your education resource was successfully updated.</h4>
       <ul>
         <li>Title: ${updatedEducation.title}</li>
         <li>Fee: GHC ${updatedEducation.fee}</li>
       </ul>
-      <p>Click on the link below to view your education:</p>
-      <a style="font-size: 14px; line-height: 1;" target="_blank" href="${process.env.CLIENT_URL}/education/${updatedEducation._id}">
-        ${process.env.CLIENT_URL}/education/${updatedEducation._id}
+      <a href="${process.env.CLIENT_URL}/education/${updatedEducation._id}" target="_blank">
+        View Education
       </a>
     `;
 
     await mailTransporter.sendMail({
       from: `Castor Care Ghana <${process.env.EMAIL_USER}>`,
       to: updatedEducation.user.email,
-      subject: "Education Update",
+      subject: 'Education Updated Successfully',
+      html: registerEmailTemplate(emailContent),
       replyTo: 'info@castorcareghana.com',
-      html: registerEmailTemplate(emailContent)
     });
 
-    // ✅ Notify all non-buyer users
-    const users = await UserModel.find({ role: { $ne: 'buyer' } }, 'email firstName');
+    // 7. Notify other users
+    const users = await UserModel.find({ role: { $ne: 'buyer' } });
 
-    const educationBody = `
-      <h4>Education Resource Updated</h4>
+    const notifyBody = `
+      <h4>An education post has been updated</h4>
       <ul>
-        <li>Posted by: ${updatedEducation.user.firstName || 'Unknown'}</li>
-        <li>Date: ${new Date().toDateString()}</li>
+        <li>By: ${updatedEducation.user.firstName}</li>
         <li>Title: ${updatedEducation.title}</li>
         <li>Fee: GHC ${updatedEducation.fee || 'Free'}</li>
       </ul>
-      <p>Click on the link below to view the updated education resource:</p> 
-      <a style="font-size: 14px; line-height: 1;" href="${process.env.CLIENT_URL}/education/${updatedEducation._id}" target="_blank">
-        ${process.env.CLIENT_URL}/education/${updatedEducation._id}
-      </a> 
+      <a href="${process.env.CLIENT_URL}/education/${updatedEducation._id}" target="_blank">
+        View Updated Education
+      </a>
     `;
 
     for (const user of users) {
@@ -229,22 +229,19 @@ export const updateEducation = async (req, res, next) => {
         from: `Castor Care Ghana <${process.env.EMAIL_USER}>`,
         to: user.email,
         subject: `Updated Education: ${updatedEducation.title}`,
+        html: registerEmailTemplate(`<p>Hi ${user.firstName || 'there'},</p>${notifyBody}`),
         replyTo: 'info@castorcareghana.com',
-        html: registerEmailTemplate(`
-          <p>Hi ${user.firstName || 'there'},</p>
-          ${educationBody}
-        `),
       });
     }
 
-    // ✅ Send response
+    // 8. Respond with updated data
     res.status(200).json({
-      message: "Education updated successfully!",
+      message: 'Education updated successfully!',
       updatedEducation,
     });
 
-  } catch (error) {
-    next(error);
+  } catch (err) {
+    next(err);
   }
 };
 
