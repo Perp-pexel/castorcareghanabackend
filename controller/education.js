@@ -168,7 +168,7 @@ export const updateEducation = async (req, res, next) => {
       title: req.body.title,
       description: req.body.description,
       url: req.body.url,
-      fee: req.body.fee || '0',
+      fee: req.body.fee || '',
       media: combinedMedia,
     });
 
