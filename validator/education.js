@@ -20,7 +20,7 @@ export const updateEducationValidator = Joi.object({
   title: Joi.string().required(),
   description: Joi.string().required(),
   url: Joi.string().uri().allow(null, ''),         // URL is optional
-  fee: Joi.number().allow(null, ''),               // Fee is optional
+  fee: Joi.string().allow(null, ''),               // Fee is optional
   media: Joi.array().items(
     Joi.object({
       type: Joi.string().valid('image', 'video', 'audio', 'document').required(),
